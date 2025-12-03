@@ -1,30 +1,33 @@
-# 🧠 Tesseract OCR API – Home Assistant Add-on  
-Local FastAPI-based OCR service for solving numeric CAPTCHAs
+# 🧠 Tesseract OCR API – Docker Container  
+Local FastAPI-based Optical Character Recognition (OCR) service optimized for numeric CAPTCHAs
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Addon-Tesseract%20OCR-blue?style=for-the-badge&logo=tesseract-ocr" />
-  <img src="https://img.shields.io/badge/Home%20Assistant-Addon-41BDF5?style=for-the-badge&logo=homeassistant" />
-  <img src="https://img.shields.io/github/license/kosztyk/homeassistant-addons?style=for-the-badge" />
+  <img src="images/tesseract-ocr-api-logo.png" alt="Tesseract OCR API Logo" width="220" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Tesseract%20OCR-API-blue?style=for-the-badge&logo=tesseract-ocr" />
+  <img src="https://img.shields.io/badge/Docker-Container-2496ED?style=for-the-badge&logo=docker" />
+  <img src="https://img.shields.io/badge/FastAPI-High%20Performance-009688?style=for-the-badge&logo=fastapi" />
 </p>
 
 ---
 
 ## 📌 Overview
 
-**Tesseract OCR API** is a lightweight, high-performance **local OCR service** built using:
+**Tesseract OCR API** is a lightweight, high-performance **Dockerized OCR service** built using:
 
-- 🚀 **FastAPI**
-- 🔡 **Tesseract OCR (digits mode optimized)**
-- ⚡ Fast, memory-optimized image preprocessing
-- 🧊 Full offline processing (no cloud services)
-- 🔒 Secure and private (runs entirely inside Home Assistant)
+- 🧠 **Tesseract OCR** (digit-only, high-accuracy mode)
+- 🚀 **FastAPI** + **Uvicorn** for ultra-fast HTTP processing
+- 🖼️ Aggressive image preprocessing for maximum CAPTCHA accuracy
+- 🔒 100% offline — no cloud services involved
 
-This add-on is ideal for:
+This container is ideal for:
 
-- Automatic CAPTCHA solving  
-- Local integrations that require numeric OCR (e.g., **RAR ITP Checker**)  
-- High-throughput OCR workloads  
-- Private home-lab environments with strict no-cloud policies  
+- Automated CAPTCHA solving  
+- Integrations requiring numeric OCR (e.g., RAR ITP Checker)  
+- High-throughput, low-latency local OCR  
+- Private homelab environments  
 
 ---
 
@@ -32,52 +35,55 @@ This add-on is ideal for:
 
 | Feature | Description |
 |--------|-------------|
-| 🧠 **Local OCR engine** | Runs Tesseract OCR inside the add-on container — no internet needed. |
-| 🚀 **FastAPI backend** | High-performance async HTTP server (Uvicorn). |
-| 🔢 **Digits-only mode** | Optimized for CAPTCHAs with numeric codes. |
-| 🖼️ **Advanced preprocessing** | Auto-denoising, thresholding, resizing, binarization. |
-| 📂 **File and URL support** | OCR images uploaded as files OR fetched from external URLs. |
-| 🩺 **Health endpoint** | Easy monitoring via `/health`. |
-| 📦 **Lightweight** | Small image, low RAM/CPU usage. |
+| 🚀 FastAPI backend | Async endpoints with excellent performance |
+| 🔢 Digits-only OCR | Perfect for CAPTCHAs and numeric codes |
+| 🖼️ Smart preprocessing | Thresholding, sharpening, denoising, resizing |
+| 📤 File upload support | OCR images sent directly via multipart/form-data |
+| 🌐 URL support | OCR images downloaded directly from remote URLs |
+| 🧪 Health endpoint | Simple monitoring endpoint `/health` |
+| 🐳 Dockerized | Portable, lightweight container |
 
 ---
 
-## 🛠 Installation
+## 🐳 Docker Usage
 
-### 🔹 Add this repository to Home Assistant
+### 🔧 Pull the image
 
-1. Go to  
-   **Settings → Add-ons → Add-on Store**  
-2. Click the **⋮ (three dots)** → **Repositories**  
-3. Add:
-
-```
-https://github.com/<your-username>/homeassistant-addons
+```bash
+docker pull <your-dockerhub-username>/tesseract-ocr-api:latest
 ```
 
-4. You will see a new section:  
-   **“Kosztyk Home Assistant Add-ons”**
-5. Select **Tesseract OCR API** → Install → Start
+Or build locally:
 
----
-
-## 🚀 API Usage
-
-Once the add-on is running, it exposes:
-
-```
-http://<homeassistant-ip>:8000
+```bash
+docker build -t tesseract-ocr-api .
 ```
 
 ---
 
-### ✅ Health check
+### ▶️ Run the container
 
+```bash
+docker run -d   -p 8000:8000   --name tesseract-ocr-api   tesseract-ocr-api
 ```
+
+The API will now be available at:
+
+```text
+http://localhost:8000
+```
+
+---
+
+## 🚀 API Endpoints
+
+### 🩺 Health Check
+
+```http
 GET /health
 ```
 
-Example:
+Response:
 
 ```json
 { "status": "ok" }
@@ -85,16 +91,16 @@ Example:
 
 ---
 
-### 📤 OCR via file upload
+### 📤 OCR from File Upload
 
-```
+```http
 POST /ocr/file?expected_length=4
 ```
 
-Example with `curl`:
+Example:
 
 ```bash
-curl -F "file=@captcha.png"   "http://server_ip:8000/ocr/file?expected_length=4"
+curl -F "file=@captcha.png"   "http://localhost:8000/ocr/file?expected_length=4"
 ```
 
 Response:
@@ -110,9 +116,9 @@ Response:
 
 ---
 
-### 🌐 OCR via URL
+### 🌐 OCR from Image URL
 
-```
+```http
 POST /ocr/url
 ```
 
@@ -139,52 +145,51 @@ Response:
 
 ## 🔍 Internals & Behavior
 
-- Uses **Tesseract PSM 7/8** (single-line digits only)
-- Aggressive preprocessing improves accuracy:
-  - grayscale normalization  
-  - blur + contrast enhancement  
-  - adaptive thresholding  
-  - anti-noise filtering  
-  - enforced resizing  
-- Returns only **digits 0–9** (non-digit characters are stripped)
-- Fully asynchronous and very fast (<20ms per image on typical CPUs)
+- Uses **Tesseract PSM 7 / PSM 8** for best numeric detection  
+- Applies heavy preprocessing for noisy images:
+  - grayscale → normalized
+  - resize × 2
+  - blur
+  - threshold
+  - denoise  
+- Extracts ONLY digits (0–9)  
+- Async, thread-safe, and optimized for server use  
+
+
+
+> Place your logo at `images/tesseract-ocr-api-logo.png` to match the path used above.
 
 ---
 
+## 🛠 Development
 
-
----
-
-## 🧪 Testing
-
-Quick local test (Linux/macOS):
+Run locally with hot reload:
 
 ```bash
-curl http://localhost:8000/health
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-OCR test:
+Install dependencies:
 
 ```bash
-curl -F "file=@tests/captcha1.png" http://localhost:8000/ocr/file?expected_length=4
+pip install -r requirements.txt
 ```
-
 
 ---
 
 ## 📝 License
 
-This project is licensed under the **MIT License** — free for personal or commercial use.
+MIT License — free for personal & commercial use.
 
 ---
 
 ## 👤 Maintainer
 
-**Constantin Nartea (kosztyk)**  
-Homelab enthusiast 
+**(kosztyk)**  
+Homelab • Imaging • Integrations • Automation  
 
 ---
 
-## ❤️ Support the Project
+## ⭐ Support
 
-If you find this add-on useful, consider giving the repo a ⭐ on GitHub — it helps visibility and development.
+If you find this container useful, please **star the repository** on GitHub — it helps a lot!
